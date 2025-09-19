@@ -5,7 +5,7 @@ use bevy::{
         system::{Query, Res},
     },
     input::{ButtonInput, keyboard::KeyCode},
-    math::{Quat, Vec3, VectorSpace},
+    math::{Quat, Vec3},
     transform::components::Transform,
 };
 
@@ -20,9 +20,9 @@ pub fn rotate_camera(
 ) {
     for mut transform in &mut camera_query {
         if keyboard_input.pressed(KeyCode::ArrowUp) {
-            transform.rotate_around(Vec3::ZERO, Quat::from_rotation_x(-CAM_SPEED));
+            // transform.rotate_around(Vec3::ZERO, Quat::from_rotation_x(-CAM_SPEED));
         } else if keyboard_input.pressed(KeyCode::ArrowDown) {
-            transform.rotate_around(Vec3::ZERO, Quat::from_rotation_x(CAM_SPEED));
+            // transform.rotate_around(Vec3::ZERO, Quat::from_rotation_x(CAM_SPEED));
         } else if keyboard_input.pressed(KeyCode::ArrowRight) {
             transform.rotate_around(Vec3::ZERO, Quat::from_rotation_y(CAM_SPEED));
         } else if keyboard_input.pressed(KeyCode::ArrowLeft) {
