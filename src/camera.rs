@@ -9,7 +9,7 @@ use bevy::{
     transform::components::Transform,
 };
 
-const CAM_SPEED: f32 = 0.02;
+use crate::constants::CAM_SPEED;
 
 #[derive(Component)]
 pub struct BoidsCamera;
