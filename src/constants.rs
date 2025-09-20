@@ -4,7 +4,7 @@ pub const WORLD_SIZE: f32 = 100.0;
 
 pub const CAM_SPEED: f32 = 0.02;
 
-pub const BOID_COUNT: u8 = 100;
+pub const BOID_COUNT: usize = 10;
 pub const BOID_SPEED: f32 = 0.5;
 pub const BOID_DIAMETER: f32 = 1.0;
 

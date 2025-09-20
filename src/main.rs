@@ -2,7 +2,7 @@ use bevy::{prelude::*, text::FontSmoothing};
 use bevy_dev_tools::fps_overlay::{FpsOverlayConfig, FpsOverlayPlugin};
 
 use crate::{
-    boids::{move_boids, spawn_boids},
+    boids::{move_boids, simulate, spawn_boids},
     camera::{BoidsCamera, rotate_camera},
     constants::{CAMERA_POS, WORLD_SIZE},
 };
@@ -30,7 +30,7 @@ fn main() {
             },
         ))
         .add_systems(Startup, (setup, spawn_boids))
-        .add_systems(Update, (rotate_camera, move_boids))
+        .add_systems(Update, (rotate_camera, (simulate, move_boids).chain()))
         .insert_resource(ClearColor(Color::srgb_u8(20, 20, 20)))
         .run();
 }
