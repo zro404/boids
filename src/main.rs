@@ -3,13 +3,14 @@ use bevy_dev_tools::fps_overlay::{FpsOverlayConfig, FpsOverlayPlugin};
 
 use crate::{
     boids::{move_boids, simulate, spawn_boids},
-    camera::{BoidsCamera, rotate_camera},
-    constants::{CAMERA_POS, WORLD_SIZE},
+    camera::{rotate_camera, BoidsCamera},
+    constants::{CAMERA_POS, WORLD_SIZE}, spherecast::spawn_sphere,
 };
 
 mod boids;
 mod camera;
 mod constants;
+mod spherecast;
 
 fn main() {
     App::new()
@@ -29,16 +30,17 @@ fn main() {
                 },
             },
         ))
-        .add_systems(Startup, (setup, spawn_boids))
-        .add_systems(Update, (rotate_camera, (simulate, move_boids).chain()))
+        .add_systems(Startup, setup)
+        .add_systems(Update, rotate_camera)
+        .add_systems(Startup, spawn_boids)
+        .add_systems(Update, (simulate, move_boids).chain())
+        // .add_systems(Startup, spawn_sphere)
         .insert_resource(ClearColor(Color::srgb_u8(20, 20, 20)))
         .run();
 }
 
 fn setup(
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
     mut ambient_light: ResMut<AmbientLight>,
 ) {
     // camera
@@ -51,9 +53,4 @@ fn setup(
     // lighting
     ambient_light.brightness = 1000.0;
 
-    // bounding box
-    commands.spawn((
-        Mesh3d(meshes.add(Cuboid::new(WORLD_SIZE, WORLD_SIZE, WORLD_SIZE))),
-        MeshMaterial3d(materials.add(Color::srgba_u8(255, 255, 255, 10))),
-    ));
 }

@@ -16,6 +16,12 @@ pub fn spawn_boids(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
+    // bounding box
+    commands.spawn((
+        Mesh3d(meshes.add(Cuboid::new(WORLD_SIZE, WORLD_SIZE, WORLD_SIZE))),
+        MeshMaterial3d(materials.add(Color::srgba_u8(255, 255, 255, 10))),
+    ));
+
     for _ in 0..BOID_COUNT {
         let vel = gen_boid_init_vel();
         commands.spawn((
@@ -92,7 +98,7 @@ pub fn simulate(mut query: Query<(&mut Transform, &mut Boid), With<Boid>>) {
 
             if dist <= LOCAL_FLOCK_RADIUS {
                 v_sum += b1.velocity.normalize();
-                t_sum += t1.translation.normalize();
+                t_sum -= t1.translation.normalize();
             }
 
             if dist <= AVOIDANCE_THRESHOLD {
@@ -103,7 +109,7 @@ pub fn simulate(mut query: Query<(&mut Transform, &mut Boid), With<Boid>>) {
 
         let mut new_vel = b.velocity.lerp(mean_v, 0.1);
         new_vel += c;
-        new_vel += b.velocity.lerp(t_sum, 0.1);
+        new_vel += b.velocity.lerp(t_sum, 0.001);
 
         vel_vec.push(new_vel.normalize() * BOID_SPEED);
     }
