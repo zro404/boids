@@ -1,7 +1,9 @@
 # Boids
 Boids is a flocking simulation inspired by the work of Craig Reynolds. This simulation demonstrates how simple rules can lead to complex, emergent group dynamics among numerous bird like objects ("*boids*").
 
-![Screenshot](screenshot.gif)
+<!-- ![Screenshot](screenshot.gif) -->
+<img src="screenshot.gif" alt="Screenshot" title="Screenshot GIF" width="720"/>
+
 
 ## Getting Started
 
