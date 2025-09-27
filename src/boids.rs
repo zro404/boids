@@ -1,3 +1,5 @@
+use std::f32::consts::{FRAC_PI_2, PI};
+
 use bevy::prelude::*;
 use rand::random;
 
@@ -16,23 +18,40 @@ pub fn spawn_boids(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    // bounding box
-    commands.spawn((
-        Mesh3d(meshes.add(Cuboid::new(WORLD_SIZE, WORLD_SIZE, WORLD_SIZE))),
-        MeshMaterial3d(materials.add(Color::srgba_u8(255, 255, 255, 10))),
-    ));
+    // Bounding box
+    // Make a box of planes facing inward
+    let plane_mesh = meshes.add(Plane3d {
+        half_size: Vec2::new(HALF_WORLD_SIZE, HALF_WORLD_SIZE),
+        ..default()
+    });
+    let plane_material = materials.add(Color::srgba_u8(255, 255, 255, 10));
+    let create_plane = move |translation, rotation| {
+        (
+            Transform::from_translation(translation * HALF_WORLD_SIZE)
+                .with_rotation(Quat::from_scaled_axis(rotation)),
+            Mesh3d(plane_mesh.clone()),
+            MeshMaterial3d(plane_material.clone()),
+        )
+    };
+
+    commands.spawn(create_plane(vec3(0.0, 1.0, 0.0), Vec3::X * PI));
+    commands.spawn(create_plane(vec3(0.0, -1.0, 0.0), Vec3::ZERO));
+    commands.spawn(create_plane(vec3(1.0, 0.0, 0.0), Vec3::Z * FRAC_PI_2));
+    commands.spawn(create_plane(vec3(-1.0, 0.0, 0.0), Vec3::Z * -FRAC_PI_2));
+    commands.spawn(create_plane(vec3(0.0, 0.0, 1.0), Vec3::X * -FRAC_PI_2));
+    commands.spawn(create_plane(vec3(0.0, 0.0, -1.0), Vec3::X * FRAC_PI_2));
 
     for _ in 0..BOID_COUNT {
         let vel = gen_boid_init_vel();
         commands.spawn((
             Boid { velocity: vel },
-            Mesh3d(meshes.add(Sphere::new(BOID_DIAMETER / 2.0))),
+            Mesh3d(meshes.add(Cone::new(BOID_DIAMETER/2.0, BOID_DIAMETER*1.5))),
             MeshMaterial3d(materials.add(Color::WHITE)),
             // Transform::from_xyz(0.0, 0.5, 0.0),
             Transform {
-                translation: gen_boid_init_pos(),
-                ..default()
-            },
+                 translation: gen_boid_init_pos(),
+                 ..default()
+             },
         ));
     }
 }
@@ -71,17 +90,10 @@ pub fn move_boids(mut query: Query<(&mut Transform, &mut Boid), With<Boid>>) {
             t.translation.z += WORLD_SIZE;
         }
 
-        // if t.translation.x > HALF_WORLD_SIZE || t.translation.x < -HALF_WORLD_SIZE {
-        //     b.velocity.x = -b.velocity.x;
-        // }
-        // if t.translation.y > HALF_WORLD_SIZE || t.translation.y < -HALF_WORLD_SIZE {
-        //     b.velocity.y = -b.velocity.y;
-        // }
-        // if t.translation.z > HALF_WORLD_SIZE || t.translation.z < -HALF_WORLD_SIZE {
-        //     b.velocity.z = -b.velocity.z;
-        // }
+        // let filter = | pos: Vec3 | pos.x > HALF_WORLD_SIZE || pos.x < -HALF_WORLD_SIZE || pos.y > HALF_WORLD_SIZE || pos.y < -HALF_WORLD_SIZE || pos.z > HALF_WORLD_SIZE || pos.z < -HALF_WORLD_SIZE;
 
         t.translation += b.velocity;
+        t.rotation = Quat::from_rotation_arc(Vec3::Y, b.velocity);
     }
 }
 
@@ -102,14 +114,19 @@ pub fn simulate(mut query: Query<(&mut Transform, &mut Boid), With<Boid>>) {
             }
 
             if dist <= AVOIDANCE_THRESHOLD {
-                c -= t1.translation - t.translation;
+                let dir = t1.translation - t.translation;
+                let dot = Vec3::dot(dir.normalize(), b.velocity.normalize());
+                // Omit boid not in vision
+                if dot > -0.5 {
+                    c -= t1.translation - t.translation;
+                }
             }
         }
         let mean_v = (v_sum.normalize()) * BOID_SPEED;
 
         let mut new_vel = b.velocity.lerp(mean_v, 0.1);
         new_vel += c;
-        new_vel += b.velocity.lerp(t_sum, 0.001);
+        new_vel += b.velocity.lerp(t_sum, 0.0003);
 
         vel_vec.push(new_vel.normalize() * BOID_SPEED);
     }

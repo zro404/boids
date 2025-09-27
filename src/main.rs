@@ -4,7 +4,7 @@ use bevy_dev_tools::fps_overlay::{FpsOverlayConfig, FpsOverlayPlugin};
 use crate::{
     boids::{move_boids, simulate, spawn_boids},
     camera::{rotate_camera, BoidsCamera},
-    constants::{CAMERA_POS, WORLD_SIZE}, spherecast::spawn_sphere,
+    constants::CAMERA_POS, spherecast::{calc_cast_sphere, spawn_cast_spheres},
 };
 
 mod boids;
@@ -32,17 +32,14 @@ fn main() {
         ))
         .add_systems(Startup, setup)
         .add_systems(Update, rotate_camera)
-        .add_systems(Startup, spawn_boids)
+        .add_systems(Startup, (calc_cast_sphere, spawn_boids).chain())
         .add_systems(Update, (simulate, move_boids).chain())
-        // .add_systems(Startup, spawn_sphere)
+        // .add_systems(Startup, spawn_cast_spheres)
         .insert_resource(ClearColor(Color::srgb_u8(20, 20, 20)))
         .run();
 }
 
-fn setup(
-    mut commands: Commands,
-    mut ambient_light: ResMut<AmbientLight>,
-) {
+fn setup(mut commands: Commands, mut ambient_light: ResMut<AmbientLight>) {
     // camera
     commands.spawn((
         BoidsCamera,
@@ -52,5 +49,4 @@ fn setup(
 
     // lighting
     ambient_light.brightness = 1000.0;
-
 }
